@@ -76,11 +76,12 @@ function SideNavItem({ to, icon, label, end = false }: { to: string; icon: React
   );
 }
 
-function BottomNavItem({ to, icon, label, end = false }: { to: string; icon: ReactNode; label: string; end?: boolean }) {
+function BottomNavItem({ to, icon, label, end = false, ariaLabel }: { to: string; icon: ReactNode; label: string; end?: boolean; ariaLabel?: string }) {
   return (
     <NavLink
       to={to}
       end={end}
+      aria-label={ariaLabel}
       className={({ isActive }) =>
         `flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-full transition-all ${
           isActive
