@@ -8,7 +8,7 @@ type Props = {
 
 export function Card({ className, children }: Props) {
   return (
-    <div className={cn('surface-glass p-6', className)}>{children}</div>
+    <div className={cn('surface-glass rounded-2xl p-5', className)}>{children}</div>
   );
 }
 
