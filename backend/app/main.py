@@ -17,6 +17,7 @@ load_dotenv()
 from backend.app import db
 from backend.app.errors import register_error_handlers
 from backend.app.routes import cron as cron_routes
+from backend.app.routes import google_fit as google_fit_routes
 from backend.app.routes import posts as posts_routes
 from backend.app.routes import profiles as profiles_routes
 from backend.app.routes import sleep as sleep_routes
@@ -29,6 +30,7 @@ app.include_router(posts_routes.router)
 app.include_router(cron_routes.router)
 app.include_router(profiles_routes.router)
 app.include_router(sleep_routes.router)
+app.include_router(google_fit_routes.router)
 
 # Live tables after migrations 0003 (pivot) + 0004 (steps) + 0005 (posts)
 # + 0008 (sleep). Hardcoded — never inject user input here; names are

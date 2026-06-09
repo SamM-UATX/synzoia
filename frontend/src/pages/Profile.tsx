@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router-dom';
 import Button from '@/components/ui/AppButton';
@@ -15,6 +15,7 @@ import SleepPost from '@/components/feed/SleepPost';
 import { ApiError } from '@/api/client';
 import { type FeedPost } from '@/api/posts';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { apiFetch } from '@/api/client';
 import type { UserDailyResponse, UserSummaryResponse } from '@/api/steps';
 import type {
   UserDailyResponse as SleepDailyResponse,
@@ -42,6 +43,58 @@ import {
 function formatNumber(n: number): string { return n.toLocaleString(); }
 const formatHeadingDate = formatDateMedium;
 const formatJoinDate = formatTimestampDate;
+
+/* ── Google Fit connect button ───────────────────────────────────── */
+function GoogleFitButton({ token }: { token: string }) {
+  const [status, setStatus] = useState<'idle'|'connected'|'syncing'>('idle');
+  const [lastSync, setLastSync] = useState<string|null>(null);
+
+  useEffect(() => {
+    apiFetch<{ connected: boolean; last_sync_at: string|null }>(
+      `/google-fit/status?token=${encodeURIComponent(token)}`
+    ).then(d => {
+      if (d.connected) { setStatus('connected'); setLastSync(d.last_sync_at); }
+    }).catch(() => {});
+  }, [token]);
+
+  const handleConnect = () => {
+    const base = import.meta.env.VITE_API_BASE_URL ?? '/api';
+    window.location.href = `${base}/google-fit/auth?token=${encodeURIComponent(token)}`;
+  };
+
+  const handleSync = async () => {
+    setStatus('syncing');
+    try {
+      await apiFetch('/google-fit/sync', { method: 'POST', body: JSON.stringify({ token }) });
+      setStatus('connected');
+      setLastSync(new Date().toISOString());
+    } catch { setStatus('connected'); }
+  };
+
+  if (status === 'connected') return (
+    <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium"
+           style={{ background: 'var(--green-lt, #daeee5)', color: 'var(--green)' }}>
+        <span>✓</span> Google Fit connected
+      </div>
+      <button onClick={handleSync}
+        className="label-mono text-muted-foreground hover:text-primary transition-colors text-[10px]">
+        {status === 'syncing' ? 'Syncing…' : 'Sync now'}
+      </button>
+    </div>
+  );
+
+  return (
+    <button onClick={handleConnect}
+      className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-white transition-all hover:opacity-90"
+      style={{ background: 'linear-gradient(135deg, #4285F4, #34A853)' }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/>
+      </svg>
+      Connect Google Fit
+    </button>
+  );
+}
 
 /* ── Coastal health ring SVG ──────────────────────────────────────── */
 function HealthRing({ value, label, pct, color }: { value: string; label: string; pct: number; color: string }) {
@@ -347,6 +400,11 @@ export default function Profile() {
                 Joined {formatJoinDate(summary.data.join_date)}
                 {summary.data.rank !== null && <span className="ml-3">Rank #{summary.data.rank}</span>}
               </p>
+            )}
+            {currentUser === username && (
+              <div className="mt-3">
+                <GoogleFitButton token={localStorage.getItem('synzoia_token') ?? ''} />
+              </div>
             )}
           </div>
         </div>

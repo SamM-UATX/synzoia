@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useSearchParams } from 'react-router-dom';
 import EmptyState from '@/components/ui/EmptyState';
 import ErrorCard from '@/components/ui/ErrorCard';
 import FeedSkeleton from '@/components/feed/FeedSkeleton';
@@ -12,6 +13,31 @@ import { groupPostsByDay } from '@/lib/feedGroups';
 import { supabase } from '@/lib/supabase';
 
 const FILTERS = ['All', 'Steps', 'Sleep', 'Milestones', 'Recaps'] as const;
+
+function GoogleFitBanner() {
+  const [params, setParams] = useSearchParams();
+  const status = params.get('gfit');
+  if (!status) return null;
+  const dismiss = () => { params.delete('gfit'); params.delete('steps'); params.delete('sleep'); setParams(params); };
+  const steps = params.get('steps') ?? '0';
+  const sleep = params.get('sleep') ?? '0';
+  return (
+    <div className="mb-5 rounded-2xl p-4 flex items-center justify-between"
+         style={{ background: status === 'connected' ? 'var(--green-lt, #daeee5)' : 'var(--red-lt, #fae0de)' }}>
+      <div>
+        <div className="font-semibold text-sm" style={{ color: status === 'connected' ? 'var(--green)' : 'var(--red, #d4524a)' }}>
+          {status === 'connected' ? '✓ Google Fit connected!' : '✗ Google Fit connection failed'}
+        </div>
+        {status === 'connected' && (
+          <div className="label-mono text-muted-foreground mt-0.5">
+            Synced {steps} days of steps · {sleep} nights of sleep
+          </div>
+        )}
+      </div>
+      <button onClick={dismiss} className="text-muted-foreground hover:text-foreground text-lg leading-none">×</button>
+    </div>
+  );
+}
 type Filter = typeof FILTERS[number];
 
 function filterLabel(f: Filter) {
@@ -21,6 +47,7 @@ function filterLabel(f: Filter) {
 export default function Feed() {
   const queryClient = useQueryClient();
   const [activeFilter, setActiveFilter] = useState<Filter>('All');
+  const [searchParams] = useSearchParams();
 
   const query = useQuery({
     queryKey: ['posts', 'feed', 50],
@@ -49,6 +76,7 @@ export default function Feed() {
 
   return (
     <div>
+      <GoogleFitBanner />
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
