@@ -1,6 +1,6 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { CircleUser, Rss, Trophy, Users, UserPlus, Database } from 'lucide-react';
+import { CircleUser, Rss, Trophy, Users, UserPlus, Database, PlusCircle } from 'lucide-react';
 import type { ReactNode } from 'react';
 import ThemeToggle from '@/components/layout/ThemeToggle';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -143,6 +143,7 @@ export function AppLayout() {
           <SideNavItem to="/leaderboard"     icon={<Trophy size={15}     strokeWidth={1.75}/>} label="Leaderboard" />
           <SideNavItem to={profileTarget}    icon={<CircleUser size={15} strokeWidth={1.75}/>} label="My Profile" />
           <SideNavItem to="/users"           icon={<Users size={15}      strokeWidth={1.75}/>} label="Users" />
+          <SideNavItem to="/log"             icon={<PlusCircle size={15} strokeWidth={1.75}/>} label="Log data" />
           <SideNavItem to="/join"            icon={<UserPlus size={15}   strokeWidth={1.75}/>} label="Join" />
           <SideNavItem to="/db"              icon={<Database size={15}   strokeWidth={1.75}/>} label="Database" />
 

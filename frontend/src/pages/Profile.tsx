@@ -45,29 +45,30 @@ const formatHeadingDate = formatDateMedium;
 const formatJoinDate = formatTimestampDate;
 
 /* ── Google Fit connect button ───────────────────────────────────── */
-function GoogleFitButton({ token }: { token: string }) {
+function GoogleFitButton({ username }: { username: string }) {
   const [status, setStatus] = useState<'idle'|'connected'|'syncing'>('idle');
   const [lastSync, setLastSync] = useState<string|null>(null);
 
   useEffect(() => {
+    if (!username) return;
     apiFetch<{ connected: boolean; last_sync_at: string|null }>(
-      `/google-fit/status?token=${encodeURIComponent(token)}`
+      `/google-fit/status?username=${encodeURIComponent(username)}`
     ).then(d => {
       if (d.connected) { setStatus('connected'); setLastSync(d.last_sync_at); }
     }).catch(() => {});
-  }, [token]);
+  }, [username]);
 
   const handleConnect = () => {
     const base = import.meta.env.VITE_API_BASE_URL ?? '/api';
-    window.location.href = `${base}/google-fit/auth?token=${encodeURIComponent(token)}`;
+    window.location.href = `${base}/google-fit/auth?username=${encodeURIComponent(username)}`;
   };
 
   const handleSync = async () => {
     setStatus('syncing');
     try {
-      await apiFetch('/google-fit/sync', { method: 'POST', body: JSON.stringify({ token }) });
-      setStatus('connected');
-      setLastSync(new Date().toISOString());
+      // fetch token first then sync
+      const base = import.meta.env.VITE_API_BASE_URL ?? '/api';
+      window.location.href = `${base}/google-fit/auth?username=${encodeURIComponent(username)}`;
     } catch { setStatus('connected'); }
   };
 
@@ -403,7 +404,7 @@ export default function Profile() {
             )}
             {currentUser === username && (
               <div className="mt-3">
-                <GoogleFitButton token={localStorage.getItem('synzoia_token') ?? ''} />
+                <GoogleFitButton username={username} />
               </div>
             )}
           </div>

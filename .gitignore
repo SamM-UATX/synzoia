@@ -48,3 +48,4 @@ htmlcov/
 
 # Course materials — not for public repo
 final_project.pdf
+dev-proxy.js
